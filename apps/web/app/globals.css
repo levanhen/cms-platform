@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--font-display-family), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-sans-family), Manrope, "Segoe UI", sans-serif;
+  /* Bruce Architecture palette — navy tin cậy + nền ấm */
+  --color-ink: #172541;
+  --color-ink-soft: #273272;
+  --color-sand: #f6f2ed;
+  --color-sand-deep: #ebe4d8;
+  --color-paper: #ffffff;
+  --color-accent: #273272;
+  --color-accent-deep: #1c2945;
+  --color-accent-soft: #6d70a6;
+  --color-secondary: #f3525a;
+  --color-muted: #707070;
+  --color-line: #e4e8f6;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink antialiased;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    color: #ffffff;
+    background: var(--color-accent);
+  }
+}
+
+@layer components {
+  .container-site {
+    @apply mx-auto w-full max-w-7xl px-5 md:px-8;
+  }
+
+  .section-label {
+    @apply text-[11px] font-semibold tracking-[0.22em] text-secondary uppercase;
+  }
+
+  .section-label-dark {
+    @apply text-[11px] font-semibold tracking-[0.22em] text-secondary uppercase;
+  }
+
+  .display-title {
+    font-family: var(--font-display);
+    @apply text-4xl leading-[1.15] font-medium tracking-tight md:text-5xl lg:text-[3.25rem];
+  }
+
+  .prose-cms {
+    @apply text-base leading-relaxed text-ink-soft;
+  }
+
+  .prose-cms h2,
+  .prose-cms h3 {
+    font-family: var(--font-display);
+    @apply mt-8 mb-3 text-ink;
+  }
+
+  .prose-cms p {
+    @apply mb-4;
+  }
+
+  .prose-cms ul {
+    @apply mb-4 list-disc pl-5;
+  }
+
+  .prose-cms a {
+    @apply text-accent-deep underline underline-offset-4;
+  }
+
+  .prose-cms img {
+    @apply my-6 h-auto max-w-full;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-accent px-7 py-3.5 text-xs font-bold tracking-[0.16em] text-white uppercase transition duration-300 hover:bg-accent-deep;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center border border-white/50 px-7 py-3.5 text-xs font-bold tracking-[0.16em] text-white uppercase transition duration-300 hover:border-white hover:bg-white/10;
+  }
+
+  .btn-outline-dark {
+    @apply inline-flex items-center justify-center border border-ink px-7 py-3.5 text-xs font-bold tracking-[0.16em] text-ink uppercase transition duration-300 hover:bg-ink hover:text-white;
+  }
+
+  .field-input {
+    @apply w-full border border-line bg-paper px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-accent;
+  }
+
+  .media-hover {
+    @apply overflow-hidden;
+  }
+
+  .media-hover img {
+    @apply transition duration-700 ease-out group-hover:scale-110;
+  }
+
+  .home-section {
+    @apply py-20 md:py-28;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-soft {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.85s ease both;
+}
+
+.animate-fade {
+  animation: fade-soft 1s ease both;
+}
+
+.animate-kenburns {
+  animation: kenburns 12s ease-out forwards;
+}
+
+.delay-1 {
+  animation-delay: 0.12s;
+}
+.delay-2 {
+  animation-delay: 0.24s;
+}
+.delay-3 {
+  animation-delay: 0.36s;
+}

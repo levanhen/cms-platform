@@ -1,0 +1,468 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  UNPUBLISH
+  LOGIN
+  LOGOUT
+  ROLE_CHANGE
+  STATUS_CHANGE
+}
+
+enum NewsletterStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+enum ContactMessageStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  username     String     @unique
+  name         String
+  passwordHash String     @map("password_hash")
+  avatar       String?
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  deletedAt    DateTime?  @map("deleted_at")
+
+  roles             UserRole[]
+  auditLogs         AuditLog[]
+  pagesCreated      Page[]           @relation("PageCreatedBy")
+  pagesUpdated      Page[]           @relation("PageUpdatedBy")
+  servicesCreated   Service[]        @relation("ServiceCreatedBy")
+  servicesUpdated   Service[]        @relation("ServiceUpdatedBy")
+  projectsCreated   Project[]        @relation("ProjectCreatedBy")
+  projectsUpdated   Project[]        @relation("ProjectUpdatedBy")
+  newsAuthored      News[]           @relation("NewsAuthor")
+  newsCreated       News[]           @relation("NewsCreatedBy")
+  newsUpdated       News[]           @relation("NewsUpdatedBy")
+  documentsUploaded Document[]
+  mediaUploaded     Media[]
+  settingsUpdated   Setting[]
+
+  @@index([status])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  groupName   String   @map("group_name")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  roles RolePermission[]
+
+  @@index([groupName])
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Page {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  summary        String?
+  content        String?
+  featuredImage  String?       @map("featured_image")
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  status         ContentStatus @default(DRAFT)
+  publishedAt    DateTime?     @map("published_at")
+  createdById    String        @map("created_by")
+  updatedById    String?       @map("updated_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  createdBy User  @relation("PageCreatedBy", fields: [createdById], references: [id])
+  updatedBy User? @relation("PageUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([deletedAt, updatedAt])
+  @@index([deletedAt, status])
+  @@map("pages")
+}
+
+model Service {
+  id               String        @id @default(cuid())
+  name             String
+  slug             String        @unique
+  shortDescription String?       @map("short_description")
+  description      String?
+  icon             String?
+  featuredImage    String?       @map("featured_image")
+  category         String?
+  price            Decimal?      @db.Decimal(12, 2)
+  displayOrder     Int           @default(0) @map("display_order")
+  status           ContentStatus @default(DRAFT)
+  seoTitle         String?       @map("seo_title")
+  seoDescription   String?       @map("seo_description")
+  publishedAt      DateTime?     @map("published_at")
+  createdById      String        @map("created_by")
+  updatedById      String?       @map("updated_by")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  deletedAt        DateTime?     @map("deleted_at")
+
+  createdBy User  @relation("ServiceCreatedBy", fields: [createdById], references: [id])
+  updatedBy User? @relation("ServiceUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([status])
+  @@index([displayOrder])
+  @@index([category])
+  @@index([deletedAt])
+  @@index([deletedAt, updatedAt])
+  @@index([deletedAt, status])
+  @@map("services")
+}
+
+model ProjectCategory {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String?
+  status      CategoryStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  projects Project[]
+
+  @@map("project_categories")
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  summary        String?
+  content        String?
+  clientName     String?       @map("client_name")
+  location       String?
+  startDate      DateTime?     @map("start_date") @db.Date
+  endDate        DateTime?     @map("end_date") @db.Date
+  featuredImage  String?       @map("featured_image")
+  gallery        Json?
+  categoryId     String?       @map("category_id")
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  displayOrder   Int           @default(0) @map("display_order")
+  publishedAt    DateTime?     @map("published_at")
+  createdById    String        @map("created_by")
+  updatedById    String?       @map("updated_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  category  ProjectCategory? @relation(fields: [categoryId], references: [id])
+  createdBy User             @relation("ProjectCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?            @relation("ProjectUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([status])
+  @@index([displayOrder])
+  @@index([categoryId])
+  @@index([startDate])
+  @@index([deletedAt])
+  @@index([deletedAt, updatedAt])
+  @@index([deletedAt, status])
+  @@map("projects")
+}
+
+model NewsCategory {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String?
+  status      CategoryStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  news News[]
+
+  @@map("news_categories")
+}
+
+model NewsTag {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  news NewsTagRelation[]
+
+  @@map("news_tags")
+}
+
+model News {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  excerpt        String?
+  content        String?
+  thumbnail      String?
+  featuredImage  String?       @map("featured_image")
+  categoryId     String?       @map("category_id")
+  authorId       String        @map("author_id")
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  status         ContentStatus @default(DRAFT)
+  publishedAt    DateTime?     @map("published_at")
+  createdById    String        @map("created_by")
+  updatedById    String?       @map("updated_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  category  NewsCategory?     @relation(fields: [categoryId], references: [id])
+  author    User              @relation("NewsAuthor", fields: [authorId], references: [id])
+  createdBy User              @relation("NewsCreatedBy", fields: [createdById], references: [id])
+  updatedBy User?             @relation("NewsUpdatedBy", fields: [updatedById], references: [id])
+  tags      NewsTagRelation[]
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([deletedAt])
+  @@index([deletedAt, updatedAt])
+  @@index([deletedAt, status])
+  @@map("news")
+}
+
+model NewsTagRelation {
+  newsId String @map("news_id")
+  tagId  String @map("tag_id")
+
+  news News    @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  tag  NewsTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, tagId])
+  @@map("news_tag_relations")
+}
+
+model DocumentCategory {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String?
+  status      CategoryStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  documents Document[]
+
+  @@map("document_categories")
+}
+
+model Document {
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  fileName     String        @map("file_name")
+  fileUrl      String        @map("file_url")
+  fileType     String        @map("file_type")
+  fileSize     Int           @map("file_size")
+  categoryId   String?       @map("category_id")
+  status       ContentStatus @default(DRAFT)
+  uploadedById String        @map("uploaded_by")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  category   DocumentCategory? @relation(fields: [categoryId], references: [id])
+  uploadedBy User              @relation(fields: [uploadedById], references: [id])
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([deletedAt])
+  @@index([deletedAt, updatedAt])
+  @@index([deletedAt, status])
+  @@map("documents")
+}
+
+model MediaFolder {
+  id        String   @id @default(cuid())
+  name      String
+  parentId  String?  @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent   MediaFolder?  @relation("MediaFolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children MediaFolder[] @relation("MediaFolderTree")
+  media    Media[]
+
+  @@index([parentId])
+  @@index([name])
+  @@map("media_folders")
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  fileName     String   @map("file_name")
+  fileUrl      String   @map("file_url")
+  mimeType     String   @map("mime_type")
+  fileSize     Int      @map("file_size")
+  width        Int?
+  height       Int?
+  altText      String?  @map("alt_text")
+  folderId     String?  @map("folder_id")
+  uploadedById String   @map("uploaded_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  folder     MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  uploadedBy User         @relation(fields: [uploadedById], references: [id])
+
+  @@index([mimeType])
+  @@index([folderId])
+  @@map("media")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?     @map("user_id")
+  action     AuditAction
+  resource   String
+  resourceId String?     @map("resource_id")
+  oldValue   Json?       @map("old_value")
+  newValue   Json?       @map("new_value")
+  ipAddress  String?     @map("ip_address")
+  userAgent  String?     @map("user_agent")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([resource])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  groupName   String   @map("group_name")
+  updatedById String?  @map("updated_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@index([groupName])
+  @@map("settings")
+}
+
+model NewsletterSubscriber {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  status         NewsletterStatus @default(ACTIVE)
+  source         String?
+  ipAddress      String?          @map("ip_address")
+  userAgent      String?          @map("user_agent")
+  subscribedAt   DateTime         @default(now()) @map("subscribed_at")
+  unsubscribedAt DateTime?        @map("unsubscribed_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([subscribedAt])
+  @@map("newsletter_subscribers")
+}
+
+model ContactMessage {
+  id          String               @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  status      ContactMessageStatus @default(NEW)
+  ipAddress   String?              @map("ip_address")
+  userAgent   String?              @map("user_agent")
+  contentHash String               @map("content_hash")
+  emailSent   Boolean              @default(false) @map("email_sent")
+  emailError  String?              @map("email_error")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+  @@index([contentHash])
+  @@index([ipAddress, createdAt])
+  @@map("contact_messages")
+}

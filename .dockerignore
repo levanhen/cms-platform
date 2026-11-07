@@ -1,0 +1,17 @@
+node_modules
+**/node_modules
+**/.next
+**/dist
+.git
+.env
+.env.*
+!.env.example
+apps/*/uploads
+**/uploads/**
+*.md
+!README.md
+.cursor
+agent-transcripts
+coverage
+tests
+vitest.config.ts

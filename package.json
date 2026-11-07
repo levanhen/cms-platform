@@ -1,0 +1,25 @@
+{
+  "name": "cms-platform",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev:bo": "pnpm --filter @cms/bo-cms dev",
+    "dev:web": "pnpm --filter @cms/web dev",
+    "db:generate": "pnpm --filter @cms/db generate",
+    "db:migrate": "pnpm --filter @cms/db migrate:dev",
+    "db:seed": "pnpm --filter @cms/db seed",
+    "db:studio": "pnpm --filter @cms/db studio",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "bash scripts/verify-mvp.sh",
+    "backup:db": "bash scripts/backup-db.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.7"
+  }
+}
